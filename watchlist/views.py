@@ -3,11 +3,12 @@ from .models import WatchList, StreamPlatform, Review
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view
-from . serializer import WatchListSerializer, StreamPlatformSerializer, ReviewSerializer
+from .serializer import WatchListSerializer, StreamPlatformSerializer, ReviewSerializer
 from rest_framework.views import APIView
 from rest_framework import mixins, generics
-# Create your views here.
 
+
+# Create your views here.
 
 
 # class based views
@@ -19,9 +20,20 @@ class ReviewDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
 
+
 class ReviewListCreate(generics.GenericAPIView, mixins.ListModelMixin, mixins.CreateModelMixin):
-    queryset = Review.objects.all()
+    # queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+
+    def get_queryset(self):
+        reviews = Review.objects.filter(watchlist=self.kwargs['pk'])
+
+        return reviews  # Response(data=serializer.data) # self.list(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        movie = WatchList.objects.get(pk=self.kwargs.get('pk'))
+
+        return serializer.save(watchlist=movie)
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
@@ -29,22 +41,24 @@ class ReviewListCreate(generics.GenericAPIView, mixins.ListModelMixin, mixins.Cr
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
 
+
 class StreamPlaformList(APIView):
     def get(self, request):
         platforms = StreamPlatform.objects.all()
 
-        serializer = StreamPlatformSerializer(platforms, many=True, context = {'request': request})
+        serializer = StreamPlatformSerializer(platforms, many=True, context={'request': request})
 
         return Response(data=serializer.data)
 
     def post(self, request):
-        serializer = StreamPlatformSerializer(data=request.data, context = {'request': request})
+        serializer = StreamPlatformSerializer(data=request.data, context={'request': request})
 
-        if(serializer.is_valid()):
+        if (serializer.is_valid()):
             serializer.save()
             return Response(serializer.data)
         else:
             return Response(serializer.errors)
+
 
 class StreamPlatformDetail(APIView):
     def get(self, request, pk):
@@ -53,7 +67,7 @@ class StreamPlatformDetail(APIView):
         except StreamPlatform.DoesNotExist:
             return Response({'error': 'Platform not found'})
 
-        serializer = StreamPlatformSerializer(platform, context = {'request': request})
+        serializer = StreamPlatformSerializer(platform, context={'request': request})
 
         return Response(data=serializer.data)
 
@@ -65,7 +79,7 @@ class StreamPlatformDetail(APIView):
 
         serializer = StreamPlatformSerializer(platform, data=request.data)
 
-        if(serializer.is_valid()):
+        if (serializer.is_valid()):
             serializer.save()
 
             return Response(data=serializer.data)
@@ -97,18 +111,19 @@ class WatchListView(APIView):
     def post(self, request):
         serializer = WatchListSerializer(data=request.data)
 
-        if(serializer.is_valid()):
+        if (serializer.is_valid()):
             serializer.save()
             return Response(serializer.data)
         else:
             return Response(serializer.errors)
 
+
 class WatchListDetail(APIView):
     def get(self, request, pk):
-        
+
         try:
             movie = WatchList.objects.get(pk=pk)
-    
+
         except WatchList.DoesNotExist:
             return Response({'error': "WatchList not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -119,13 +134,13 @@ class WatchListDetail(APIView):
     def put(self, request, pk):
         try:
             movie = WatchList.objects.get(pk=pk)
-    
+
         except WatchList.DoesNotExist:
             return Response({'error': "WatchList not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = WatchListSerializer(movie,data=request.data)
+        serializer = WatchListSerializer(movie, data=request.data)
 
-        if(serializer.is_valid()):
+        if (serializer.is_valid()):
             serializer.save()
 
             return Response(data=serializer.data)
@@ -135,7 +150,7 @@ class WatchListDetail(APIView):
     def delete(self, request, pk):
         try:
             watchlist = WatchList.objects.get(pk=pk)
-    
+
         except WatchList.DoesNotExist:
             return Response({'error': "WatchList not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -143,22 +158,22 @@ class WatchListDetail(APIView):
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-        
+
 # function based views
 
-@api_view(['GET', 'POST',])
+@api_view(['GET', 'POST', ])
 def movies_list(request):
-    if(request.method == 'GET'):
+    if (request.method == 'GET'):
         movies = WatchList.objects.all()
 
         serializer = WatchListSerializer(movies, many=True)
 
         return Response(data=serializer.data)
 
-    elif request.method == 'POST': # POST request
+    elif request.method == 'POST':  # POST request
         serializer = WatchListSerializer(data=request.data)
 
-        if(serializer.is_valid()):
+        if (serializer.is_valid()):
             serializer.save()
             return Response(serializer.data)
         else:
@@ -167,31 +182,30 @@ def movies_list(request):
     return Response(data={'errors': 'Something went wrong'})
 
 
-@api_view(['GET' ,'PUT', 'DELETE'])
+@api_view(['GET', 'PUT', 'DELETE'])
 def WatchList_details(request, pk):
-
     try:
         movie = WatchList.objects.get(pk=pk)
-    
+
     except WatchList.DoesNotExist:
         return Response({'error': "WatchList not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    if(request.method == 'GET'):
+    if (request.method == 'GET'):
 
         serializer = WatchListSerializer(movie)
 
         return Response(data=serializer.data)
 
     elif request.method == 'PUT':
-        serializer = WatchListSerializer(movie,data=request.data)
+        serializer = WatchListSerializer(movie, data=request.data)
 
-        if(serializer.is_valid()):
+        if (serializer.is_valid()):
             serializer.save()
 
             return Response(data=serializer.data)
         else:
             return Response(serializer.errors)
-        
+
     elif request.method == 'DELETE':
         WatchList.delete()
 

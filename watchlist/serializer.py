@@ -1,14 +1,20 @@
+# serializer converts model object to json
+
 from rest_framework import serializers
-from . models import StreamPlatform, WatchList, Review
+from .models import StreamPlatform, WatchList, Review
+
 
 def validate_length(value):
     if len(value) < 5:
         raise serializers.ValidationError("Name is too short")
 
+
 class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
-        fields = '__all__'
+        exclude = ('watchlist',)
+        # fields = '__all__'
+
 
 class WatchListSerializer(serializers.ModelSerializer):
     length_of_title = serializers.SerializerMethodField()
@@ -17,7 +23,7 @@ class WatchListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = WatchList
-        fields = '__all__'  #['id', 'name', 'description',] # exclude active field
+        fields = '__all__'  # ['id', 'name', 'description',] # exclude active field
 
     def get_length_of_title(self, instance):
         length = len(instance.title)
@@ -38,14 +44,14 @@ class WatchListSerializer(serializers.ModelSerializer):
         instance.title = validated_data.get('title', instance.title)
         instance.description = validated_data.get('description', instance.description)
         instance.active = validated_data.get('active', instance.active)
- 
-        instance.save() # saves
+
+        instance.save()  # saves
         return instance
-    
+
     def validate(self, data):
         if data['title'] == data['description']:
             raise serializers.ValidationError("Name and description can't have the same value")
-        
+
         return data
 
     # def validate_name(self, data):
@@ -57,12 +63,12 @@ class WatchListSerializer(serializers.ModelSerializer):
 
 class StreamPlatformSerializer(serializers.HyperlinkedModelSerializer):
     watchlist = WatchListSerializer(many=True, read_only=True)
+
     # watchlist = serializers.HyperlinkedRelatedField(
     #     many=True,
     #     read_only=True,
     #     view_name='movie_details'
     # )
-
 
     class Meta:
         model = StreamPlatform
