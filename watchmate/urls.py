@@ -5,4 +5,6 @@ from watchlist import urls
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('watch/', include('watchlist.urls'),),
+    path('account/', include('account.api.urls'),),
+    # path('api-auth', include('rest_framework.urls'))
 ]

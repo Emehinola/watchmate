@@ -10,6 +10,7 @@ def validate_length(value):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField() # HyperlinkedRelatedField(read_only=True, view_name='user')
     class Meta:
         model = Review
         exclude = ('watchlist',)
@@ -73,6 +74,6 @@ class StreamPlatformSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = StreamPlatform
         fields = '__all__'
-        extra_kwargs = {
-            'url': {'view_name': 'platform-details'}
-        }
+        # extra_kwargs = {
+        #     'url': {'view_name': 'stream-platform'}
+        # }

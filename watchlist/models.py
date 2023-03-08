@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.contrib.auth.models import User
 
 
 class StreamPlatform(models.Model):
@@ -19,6 +20,8 @@ class WatchList(models.Model):
     platform = models.ForeignKey(StreamPlatform, on_delete=models.CASCADE, related_name='watchlist')
     title = models.CharField(max_length=200)
     description = models.CharField(max_length=500)
+    rating_avg = models.FloatField(default=0.0)
+    total_rating = models.IntegerField(default=0)
     active = models.BooleanField(default=False)
     dateCreated = models.DateTimeField(auto_now_add=True)
 
@@ -27,6 +30,7 @@ class WatchList(models.Model):
 
     class Meta:
         verbose_name_plural = 'WatchList'
+
 
 # validators for review
 def minValue(value: int, ):
@@ -39,6 +43,8 @@ def maxValue(value: int, ):
 
 # reviews
 class Review(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    rating = models.IntegerField(default=0)
     watchlist = models.ForeignKey(WatchList, on_delete=models.CASCADE, related_name='reviews')
     rating = models.PositiveBigIntegerField(validators=[minValue, maxValue]) 
     description = models.CharField(max_length=200, null=True)
@@ -47,3 +53,25 @@ class Review(models.Model):
 
     def __str__(self):
         return f'{self.rating}'
+    
+    def save(self, *args, **kwargs):
+
+        if(self.watchlist.total_rating == 0):
+            self.watchlist.rating_avg = self.rating
+        else:
+            self.watchlist.rating_avg = (self.rating + self.watchlist.rating_avg) / 2
+
+        self.watchlist.total_rating += 1 # increment total rating by 1
+
+        self.watchlist.save()
+
+        return super().save(*args, **kwargs)
+    
+    def delete(self, *args, **kwargs):
+        new_reviews = self.watchlist.rating_avg * self.watchlist.total_rating
+        self.watchlist.total_rating -= 1
+
+        self.watchlist.rating_avg = new_reviews / self.watchlist.total_rating
+        self.watchlist.save()
+
+        super().delete()

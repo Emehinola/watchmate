@@ -5,7 +5,12 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from .serializer import WatchListSerializer, StreamPlatformSerializer, ReviewSerializer
 from rest_framework.views import APIView
-from rest_framework import mixins, generics
+from rest_framework import mixins, generics, viewsets
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.models import User
+from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import IsAuthenticated
+from .permissions import IsAdminOrReadOnly, IsOwner
 
 
 # Create your views here.
@@ -13,12 +18,16 @@ from rest_framework import mixins, generics
 
 # class based views
 
-class ReviewDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
+class ReviewDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, generics.GenericAPIView):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+    permission_classes = [IsOwner]
 
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
+    
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
 
 
 class ReviewListCreate(generics.GenericAPIView, mixins.ListModelMixin, mixins.CreateModelMixin):
@@ -26,14 +35,19 @@ class ReviewListCreate(generics.GenericAPIView, mixins.ListModelMixin, mixins.Cr
     serializer_class = ReviewSerializer
 
     def get_queryset(self):
-        reviews = Review.objects.filter(watchlist=self.kwargs['pk'])
+        reviews = Review.objects.filter(watchlist=self.kwargs.get('pk'))
 
         return reviews  # Response(data=serializer.data) # self.list(request, *args, **kwargs)
 
     def perform_create(self, serializer):
-        movie = WatchList.objects.get(pk=self.kwargs.get('pk'))
+        try:
+            movie = WatchList.objects.get(pk=self.kwargs.get('pk'))
+        except WatchList.DoesNotExist:
+            raise ValidationError("Movie does not exist")
+        
+        user = User.objects.get(id=self.request.user.id)
 
-        return serializer.save(watchlist=movie)
+        return serializer.save(watchlist=movie, user=user)
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
@@ -41,6 +55,44 @@ class ReviewListCreate(generics.GenericAPIView, mixins.ListModelMixin, mixins.Cr
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
 
+
+# using view set
+class StreamPlatformView(viewsets.ViewSet):
+    
+    def list(self, request):
+        streams = StreamPlatform.objects.all()
+        serializer = StreamPlatformSerializer(streams, many=True, context={'request': request})
+
+        return Response(serializer.data)
+    
+    def retrieve(self, request, pk=None):
+        queryset = StreamPlatform.objects.all() # gets all streams
+        stream = get_object_or_404(queryset, pk=pk) # gets stream by pk(id) or return 404 where not found
+
+        serializer = StreamPlatformSerializer(stream, context={'request': request})
+
+        return Response(serializer.data)
+    
+    def create(self, request):
+        serializer = StreamPlatformSerializer(data=request.data, context={'request': request})
+
+        if(serializer.is_valid()):
+            serializer.save()
+
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+        
+    def update(self, request, pk):
+        platform = StreamPlatform.objects.get(pk=pk)
+        serializer = StreamPlatformSerializer(platform, data=request.data, context={'request': request})
+
+        if(serializer.is_valid()):
+            serializer.save()
+
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
 
 class StreamPlaformList(APIView):
     def get(self, request):
@@ -51,6 +103,7 @@ class StreamPlaformList(APIView):
         return Response(data=serializer.data)
 
     def post(self, request):
+        
         serializer = StreamPlatformSerializer(data=request.data, context={'request': request})
 
         if (serializer.is_valid()):
