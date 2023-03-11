@@ -4,6 +4,7 @@ from account.api.serializers import RegistrationSerializer
 from rest_framework.response import Response
 from account.api import signals
 from rest_framework.authtoken.models import Token
+from rest_framework import status
 
 # Create your views here.
 
@@ -34,3 +35,10 @@ def register_view(request):
     
     return Response({'error': 'Method not allowed!'})
 
+
+@api_view(['POST'])
+def logout_view(request):
+    if request.method == 'POST':
+        request.user.auth_token.delete() # deletes token for the user
+
+    return Response(status=status.HTTP_200_OK)

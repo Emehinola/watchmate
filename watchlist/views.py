@@ -2,7 +2,7 @@ from django.shortcuts import render
 from .models import WatchList, StreamPlatform, Review
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from .serializer import WatchListSerializer, StreamPlatformSerializer, ReviewSerializer
 from rest_framework.views import APIView
 from rest_framework import mixins, generics, viewsets
@@ -33,6 +33,7 @@ class ReviewDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, generics.
 class ReviewListCreate(generics.GenericAPIView, mixins.ListModelMixin, mixins.CreateModelMixin):
     # queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         reviews = Review.objects.filter(watchlist=self.kwargs.get('pk'))
@@ -58,6 +59,8 @@ class ReviewListCreate(generics.GenericAPIView, mixins.ListModelMixin, mixins.Cr
 
 # using view set
 class StreamPlatformView(viewsets.ViewSet):
+
+    permission_classes = [IsAdminOrReadOnly]
     
     def list(self, request):
         streams = StreamPlatform.objects.all()
@@ -95,6 +98,9 @@ class StreamPlatformView(viewsets.ViewSet):
             return Response(serializer.errors)
 
 class StreamPlaformList(APIView):
+
+    permission_classes = [IsAdminOrReadOnly]
+
     def get(self, request):
         platforms = StreamPlatform.objects.all()
 
@@ -114,6 +120,9 @@ class StreamPlaformList(APIView):
 
 
 class StreamPlatformDetail(APIView):
+
+    permission_classes = [IsAdminOrReadOnly]
+
     def get(self, request, pk):
         try:
             platform = StreamPlatform.objects.get(pk=pk)
@@ -154,6 +163,8 @@ class StreamPlatformDetail(APIView):
 
 class WatchListView(APIView):
 
+    permission_classes = [IsAdminOrReadOnly]
+
     def get(self, request):
         movies = WatchList.objects.all()
 
@@ -172,6 +183,9 @@ class WatchListView(APIView):
 
 
 class WatchListDetail(APIView):
+
+    permission_classes = [IsAdminOrReadOnly]
+
     def get(self, request, pk):
 
         try:
@@ -215,6 +229,7 @@ class WatchListDetail(APIView):
 # function based views
 
 @api_view(['GET', 'POST', ])
+@permission_classes((IsAdminOrReadOnly,))
 def movies_list(request):
     if (request.method == 'GET'):
         movies = WatchList.objects.all()
@@ -236,6 +251,7 @@ def movies_list(request):
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes((IsAdminOrReadOnly,))
 def WatchList_details(request, pk):
     try:
         movie = WatchList.objects.get(pk=pk)
