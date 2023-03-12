@@ -2,9 +2,10 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view
 from account.api.serializers import RegistrationSerializer
 from rest_framework.response import Response
-from account.api import signals
+# from account.api import signals
 from rest_framework.authtoken.models import Token
 from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
 
 # Create your views here.
 
@@ -23,7 +24,12 @@ def register_view(request):
             data['email'] = created_user.email
             
             try:
-                data['token'] = Token.objects.get(user=created_user).key
+                refresh_token = RefreshToken.for_user(created_user)
+                data['token'] = {
+                    'refresh_token': str(refresh_token),
+                    'access_token': str(refresh_token.access_token)
+                }
+                # data['token'] = Token.objects.get(user=created_user).key
             except Token.DoesNotExist:
                 Token.objects.create(user=created_user)
 
