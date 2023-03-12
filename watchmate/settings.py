@@ -134,11 +134,20 @@ REST_FRAMEWORK = {
         # 'rest_framework.authentication.BasicAuthentication',
         # 'rest_framework.authentication.SessionAuthentication',
     ],
+    #  'DEFAULT_THROTTLE_CLASSES': [
+    #     'rest_framework.throttling.AnonRateThrottle',
+    #     'rest_framework.throttling.UserRateThrottle'
+    # ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '5/day',
+        'user': '5/day'
+    }
     # 'DEFAULT_PERMISSION_CLASSES': [
     #     'rest_framework.permissions.IsAuthenticated',
     # ]
 }
 
-SIMPLE_JWT = {
-    'ROTATE_REFRESH_TOKENS': True
-}
+
+# SIMPLE_JWT = {
+#     'ROTATE_REFRESH_TOKENS': True
+# }

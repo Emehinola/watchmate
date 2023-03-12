@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 from .permissions import IsAdminOrReadOnly, IsOwner
 
 
@@ -164,6 +165,7 @@ class StreamPlatformDetail(APIView):
 class WatchListView(APIView):
 
     permission_classes = [IsAdminOrReadOnly]
+    throttle_classes = [UserRateThrottle]
 
     def get(self, request):
         movies = WatchList.objects.all()

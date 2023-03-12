@@ -24,12 +24,12 @@ def register_view(request):
             data['email'] = created_user.email
             
             try:
-                refresh_token = RefreshToken.for_user(created_user)
-                data['token'] = {
-                    'refresh_token': str(refresh_token),
-                    'access_token': str(refresh_token.access_token)
-                }
-                # data['token'] = Token.objects.get(user=created_user).key
+                # refresh_token = RefreshToken.for_user(created_user)
+                # data['token'] = {
+                #     'refresh_token': str(refresh_token),
+                #     'access_token': str(refresh_token.access_token)
+                # }
+                data['token'] = Token.objects.get(user=created_user).key
             except Token.DoesNotExist:
                 Token.objects.create(user=created_user)
 
