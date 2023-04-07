@@ -10,8 +10,9 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
+from rest_framework.throttling import UserRateThrottle, AnonRateThrottle, ScopedRateThrottle
 from .permissions import IsAdminOrReadOnly, IsOwner
+from .throttling import WatchlistThrottle
 
 
 # Create your views here.
@@ -51,6 +52,7 @@ class ReviewListCreate(generics.GenericAPIView, mixins.ListModelMixin, mixins.Cr
 
         return serializer.save(watchlist=movie, user=user)
 
+    
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
@@ -162,10 +164,12 @@ class StreamPlatformDetail(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+
 class WatchListView(APIView):
 
     permission_classes = [IsAdminOrReadOnly]
-    throttle_classes = [UserRateThrottle]
+    throttle_classes = [WatchlistThrottle]  # [ScopedRateThrottle]
+    # throttle_scope = 'watchlist'
 
     def get(self, request):
         movies = WatchList.objects.all()
