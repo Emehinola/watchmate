@@ -14,5 +14,6 @@ urlpatterns = [
     # path('stream/<int:pk>/', views.StreamPlatformDetail.as_view(), name='stream-details'),
     path('<int:pk>/reviews/', views.ReviewListCreate.as_view(), name='reviews-by-stream'),
     path('reviews/', views.ReviewListCreate.as_view(), name='reviews'),
-    path('reviews/<int:pk>/', views.ReviewDetail.as_view(), name='review-detail')
+    path('reviews/<int:pk>/', views.ReviewDetail.as_view(), name='review-detail'),
+    path('reviews-filter/', views.FilterReview.as_view(), name='review-filter')
 ]

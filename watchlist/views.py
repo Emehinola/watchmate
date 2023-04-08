@@ -20,6 +20,14 @@ from .throttling import WatchlistThrottle
 
 # class based views
 
+class FilterReview(generics.ListAPIView):
+    queryset = Review
+    serializer_class = ReviewSerializer
+
+    def get_queryset(self):
+        username = self.request.query_params.get('username', None)
+        return Review.objects.filter(user__username=username) # filter reviews username
+
 class ReviewDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, generics.GenericAPIView):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
@@ -38,9 +46,11 @@ class ReviewListCreate(generics.GenericAPIView, mixins.ListModelMixin, mixins.Cr
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        reviews = Review.objects.filter(watchlist=self.kwargs.get('pk'))
 
-        return reviews  # Response(data=serializer.data) # self.list(request, *args, **kwargs)
+        pk = self.kwargs.get('pk')
+        reviews = Review.objects.filter(watchlist=pk)
+
+        return Review.objects.all() if pk == None else reviews  # Response(data=serializer.data) # self.list(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         try:
