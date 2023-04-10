@@ -13,6 +13,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle, ScopedRateThrottle
 from .permissions import IsAdminOrReadOnly, IsOwner
 from .throttling import WatchlistThrottle
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
 
 
 # Create your views here.
@@ -23,10 +25,14 @@ from .throttling import WatchlistThrottle
 class FilterReview(generics.ListAPIView):
     queryset = Review
     serializer_class = ReviewSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['user__username', 'active']
 
     def get_queryset(self):
-        username = self.request.query_params.get('username', None)
-        return Review.objects.filter(user__username=username) # filter reviews username
+        # username = self.request.query_params.get('username', None)
+        # return Review.objects.filter(user__username=username) # filter reviews username
+
+        return Review.objects.all()
 
 class ReviewDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, generics.GenericAPIView):
     queryset = Review.objects.all()
@@ -174,6 +180,13 @@ class StreamPlatformDetail(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class SearchMoviewList(generics.ListAPIView):
+    queryset = WatchList.objects.all()
+    serializer_class = WatchListSerializer
+    filter_backends = [SearchFilter, OrderingFilter]
+    search_fields = ['platform__name', 'title'] # =title : exact, ^title : starts with, @title : full text search, $ : regex search
+    ordering_fields = ['rating_avg']
+    
 
 class WatchListView(APIView):
 

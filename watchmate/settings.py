@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest_framework_simplejwt',
     'watchlist',
+    'django_filters'
 ]
 
 MIDDLEWARE = [
@@ -142,7 +143,8 @@ REST_FRAMEWORK = {
         'anon': '5/day',
         'user': '5/day',
         'watchlist': '3/day'
-    }
+    },
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
     # 'DEFAULT_PERMISSION_CLASSES': [
     #     'rest_framework.permissions.IsAuthenticated',
     # ]

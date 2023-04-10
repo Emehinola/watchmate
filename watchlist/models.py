@@ -19,17 +19,17 @@ class StreamPlatform(models.Model):
 class WatchList(models.Model):
     platform = models.ForeignKey(StreamPlatform, on_delete=models.CASCADE, related_name='watchlist')
     title = models.CharField(max_length=200)
+    active = models.BooleanField(default=False)
     description = models.CharField(max_length=500)
     rating_avg = models.FloatField(default=0.0)
     total_rating = models.IntegerField(default=0)
-    active = models.BooleanField(default=False)
     dateCreated = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
         return self.title # name of movie
 
     class Meta:
-        verbose_name_plural = 'WatchList'
+        verbose_name_plural = 'Watch Lists'
 
 
 # validators for review
@@ -44,6 +44,7 @@ def maxValue(value: int, ):
 # reviews
 class Review(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    active = models.BooleanField(default=False)
     rating = models.IntegerField(default=0)
     watchlist = models.ForeignKey(WatchList, on_delete=models.CASCADE, related_name='reviews')
     rating = models.PositiveBigIntegerField(validators=[minValue, maxValue]) 

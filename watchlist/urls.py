@@ -8,6 +8,7 @@ router.register('stream', StreamPlatformView, basename='streamplatform',)
 
 urlpatterns = [
     path('list/', views.WatchListView.as_view(), name='movies-list'),
+    path('list-filter/', views.SearchMoviewList.as_view(), name='movies-list-filter'),
     path('<int:pk>/', views.WatchListDetail.as_view(), name='movie_details'),
     path('', include(router.urls)),
     # path('stream/', views.StreamPlaformList.as_view(), name='stream-list'),
