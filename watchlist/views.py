@@ -15,6 +15,7 @@ from .permissions import IsAdminOrReadOnly, IsOwner
 from .throttling import WatchlistThrottle
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
+from . pagination import CustomPagination
 
 
 # Create your views here.
@@ -183,6 +184,7 @@ class StreamPlatformDetail(APIView):
 class SearchMoviewList(generics.ListAPIView):
     queryset = WatchList.objects.all()
     serializer_class = WatchListSerializer
+    pagination_class = CustomPagination
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ['platform__name', 'title'] # =title : exact, ^title : starts with, @title : full text search, $ : regex search
     ordering_fields = ['rating_avg']
@@ -192,6 +194,7 @@ class WatchListView(APIView):
 
     permission_classes = [IsAdminOrReadOnly]
     throttle_classes = [WatchlistThrottle]  # [ScopedRateThrottle]
+    pagination_class = CustomPagination
     # throttle_scope = 'watchlist'
 
     def get(self, request):
