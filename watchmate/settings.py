@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'watchlist',
     'django_filters'
-]
+    ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

@@ -75,6 +75,9 @@ class ReviewListCreate(generics.GenericAPIView, mixins.ListModelMixin, mixins.Cr
 
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
+    
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
 
 
 # using view set
@@ -117,7 +120,7 @@ class StreamPlatformView(viewsets.ViewSet):
         else:
             return Response(serializer.errors)
 
-class StreamPlaformList(APIView):
+class StreamPlaformListCreate(APIView):
 
     permission_classes = [IsAdminOrReadOnly]
 

@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view
 from account.api.serializers import RegistrationSerializer
 from rest_framework.response import Response
-# from account.api import signals
+from account.api import signals
 from rest_framework.authtoken.models import Token
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -33,13 +33,13 @@ def register_view(request):
             except Token.DoesNotExist:
                 Token.objects.create(user=created_user)
 
-            return Response(data)
+            return Response(data, status=status.HTTP_201_CREATED)
         else:
             data = serializer.errors
         
-        return Response(data)
+        return Response(data, status=status.HTTP_400_BAD_REQUEST)
     
-    return Response({'error': 'Method not allowed!'})
+    return Response({'error': 'Method not allowed!'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 @api_view(['POST'])
